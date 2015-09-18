@@ -14,15 +14,15 @@ void main()
 	double		prevTime = Clock::getCurrentTime();
 	double		currentTime = 0.0f;
 	double		framesPerSecond = 0.0f;
-	int			seconds = 0;
-	int			minutes = 0;
+	int			seconds = 45;
+	int			minutes = 59;
 	int			hours = 0;
 	string sHours, sMinutes, sSeconds, sTime;
-
+	Timer secsTimer;
 	while (true)
 	{
 		currentTime = Clock::getCurrentTime();
-		framesPerSecond += currentTime - prevTime;
+		framesPerSecond = currentTime - prevTime;
 		prevTime = currentTime;
 
 		if (framesPerSecond >= 1.0)
