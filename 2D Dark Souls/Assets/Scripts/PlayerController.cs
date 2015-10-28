@@ -12,11 +12,15 @@ public class PlayerController : MonoBehaviour {
     float m_jumpDamp = 0.25f;
     bool m_groundedLeft;
     bool m_groundedRight;
+    bool m_headCheckLeft;
+    bool m_headCheckRight;
     public bool m_facingRight;
 
     //Objects for checking ground Linecast and rigidbody for player.
     public Transform groundCheckLeft;
     public Transform groundCheckRight;
+    public Transform headCheckRight;
+    public Transform headCheckLeft;
     Rigidbody2D rbPlayer;
 
 	void Start () 
@@ -32,8 +36,10 @@ public class PlayerController : MonoBehaviour {
         //Horizontal Left-right Input
         m_h = Input.GetAxisRaw("Horizontal");
         //Linecasts left and right sides of player to see if they are grounded.
-        m_groundedRight = Physics2D.Linecast(new Vector2(groundCheckRight.position.x, (groundCheckRight.position.y + 1)), (groundCheckRight.position + new Vector3(0, -0.1f, 0)), 1 << LayerMask.NameToLayer("Blocking Layer"));
-        m_groundedLeft = Physics2D.Linecast(new Vector2(groundCheckLeft.position.x, (groundCheckLeft.position.y + 1)), (groundCheckLeft.position + new Vector3(0, -0.1f, 0)), 1 << LayerMask.NameToLayer("Blocking Layer"));
+        m_headCheckLeft = Physics2D.Linecast(new Vector2(headCheckLeft.position.x, (headCheckLeft.position.y - 1)), (headCheckLeft.position + new Vector3(0, 0.05f, 0)), 1 << LayerMask.NameToLayer("Blocking Layer"));
+        m_headCheckRight = Physics2D.Linecast(new Vector2(headCheckRight.position.x, (headCheckRight.position.y - 1)), (headCheckRight.position + new Vector3(0, 0.05f, 0)), 1 << LayerMask.NameToLayer("Blocking Layer"));
+        m_groundedRight = Physics2D.Linecast(new Vector2(groundCheckRight.position.x, (groundCheckRight.position.y + 1)), (groundCheckRight.position + new Vector3(0, -0.05f, 0)), 1 << LayerMask.NameToLayer("Blocking Layer"));
+        m_groundedLeft = Physics2D.Linecast(new Vector2(groundCheckLeft.position.x, (groundCheckLeft.position.y + 1)), (groundCheckLeft.position + new Vector3(0, -0.05f, 0)), 1 << LayerMask.NameToLayer("Blocking Layer"));
         //Jump Input.
         if (Input.GetButtonDown("Jump") && (m_groundedRight || m_groundedLeft))
             Jump();
@@ -43,21 +49,20 @@ public class PlayerController : MonoBehaviour {
     {
         Move();
 
-        //Jump Code based off own physics because Unity AddForce is wonky.
-        Vector2 pos = transform.position;
-        if (m_jumpVelocity != 0)
+        if (m_jumpVelocity != 0 && !(m_headCheckLeft || m_headCheckRight))
         {
-            //Change Y position based on velocity, dampen by m_jumpDamp * deltaTime
-            pos.y += m_jumpVelocity;
-            m_jumpVelocity -= m_jumpDamp * Time.deltaTime;
+            rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, m_jumpVelocity);
+            m_jumpVelocity -= m_jumpDamp;
             //When Velocity is 0, turn gravity on.
             if (m_jumpVelocity <= 0)
             {
-                rbPlayer.gravityScale = 1.0f;
                 m_jumpVelocity = 0.0f;
             }
-            //Set the position of the player to the calculated position if velocity is <= 0
-            transform.position = pos;
+        }
+        if (m_headCheckLeft || m_headCheckRight)
+        {
+            Debug.Log(rbPlayer.velocity.y);
+            rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, -rbPlayer.velocity.y);
         }
         
     }
@@ -78,7 +83,7 @@ public class PlayerController : MonoBehaviour {
     void Jump()
     {
         //Disable gravity physics on rigidbody2d while jumping for a consistent jump.
-        m_jumpVelocity = 0.16f;
-        rbPlayer.gravityScale = 0.0f;
+        m_jumpVelocity = 8.0f;
+        
     }
 }
