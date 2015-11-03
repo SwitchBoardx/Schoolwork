@@ -44,25 +44,47 @@ int main(int argc, char* argv[])
 	{
 		display.Clear(0.0f, 0.15f, 0.3f, 1.0f);
 		shader.Bind();
+
+
+
 		SDL_Event e;
+
 		while(SDL_PollEvent(&e))
 		{
+
+			if(e.type == SDL_QUIT)
+				display.SetClosed(true);
 			if(e.type == SDL_KEYDOWN)
 			{
 				switch(e.key.keysym.sym)
 				{
-					case SDLK_LEFT:
-						Left();
-						break;
-					case SDLK_RIGHT:
-						Right();
-						break;
-					default:
-						break;
+				case SDLK_LEFT:
+					Left();
+					break;
+				case SDLK_RIGHT:
+					Right();
+					break;
+				default:
+					break;
 				}
 			}
-			
+			else if(e.type == SDL_KEYUP)
+			{
+				switch(e.key.keysym.sym)
+				{
+				case SDLK_LEFT:
+					paddleVel = vec3(0.0f);
+					break;
+				case SDLK_RIGHT:
+					paddleVel = vec3(0.0f);
+					break;
+				default:
+					break;
+				}
+			}
+
 		}
+
 		if(ballPos.x + 0.05f >= 1.0f)
 			ballVel = vec3(-ballVel.x, ballVel.y, ballVel.z);
 		else if(ballPos.x - 0.05f <= -1.0f)
@@ -74,7 +96,16 @@ int main(int argc, char* argv[])
 		ballPos += ballVel * 1.0f/60.0f;
 		ball.Translate(translate(mat4(1.0f), ballPos));
 		ball.Draw();
-		std::cout << paddleVel.x << std::endl;
+
+		
+		float diffY = ballPos.y - paddlePos.y;
+		
+		if(diffY < 0.05f)
+		{
+			ballVel.y = -ballVel.y;
+			
+		}
+		paddlePos = clamp(paddlePos, -1.0f + 0.1f, 1.0f - 0.1f);
 		paddlePos += paddleVel * 1.0f/60.0f;
 		paddle.Translate(translate(mat4(1.0f), paddlePos));
 		paddle.Draw();
@@ -87,15 +118,10 @@ int main(int argc, char* argv[])
 
 void Left()
 {
-	paddleVel = vec3(-0.1f, 0.0f, 0.0f);
+	paddleVel = vec3(-0.5f, 0.0f, 0.0f);
 }
 
 void Right()
 {
-	paddleVel = vec3(0.1f, 0.0f, 0.0f);
-}
-
-void Input()
-{
-
+	paddleVel = vec3(0.5f, 0.0f, 0.0f);
 }
